@@ -106,14 +106,10 @@ class ChatViewModel(
                     val functionResponsePart = if (functionName == "get_health_data") {
                         val args = functionCall.args
                         val dataType = args["dataType"] as? String ?: ""
-                        // handle Double/Integer safely
-                        val daysAgoRaw = args["daysAgo"]
-                        val daysAgo = when (daysAgoRaw) {
-                            is Double -> daysAgoRaw.toInt()
-                            is Int -> daysAgoRaw
-                            is String -> daysAgoRaw.toIntOrNull() ?: 0
-                            else -> 0
-                        }
+
+                        // Use string conversion to parse to Int safely.
+                        val daysAgoRaw = args["daysAgo"]?.toString() ?: "0"
+                        val daysAgo = daysAgoRaw.toDoubleOrNull()?.toInt() ?: 0
 
                         val jsonResult = handleGetHealthData(dataType, daysAgo)
 
