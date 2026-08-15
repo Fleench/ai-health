@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Lets this app see/launch the Health Connect app (package visibility,
+         required since Android 11) so the permission dialog can actually open. -->
+    <queries>
+        <package android:name="com.google.android.apps.healthdata" />
+    </queries>
+
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Health Connect Permissions -->
@@ -35,6 +41,12 @@
             android:name=".PermissionsRationaleActivity"
             android:exported="true">
             <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>            <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
         </activity>
