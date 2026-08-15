@@ -1,6 +1,9 @@
 package com.example.healthchat
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
@@ -77,11 +81,53 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkAndRequestPermissions() {
+        // Health Connect must be present/updated on the device before we can do
+        // anything with it. Without this check, getOrCreate() (called lazily the
+        // first time healthConnectManager.healthConnectClient is touched) throws
+        // and the permission dialog silently never opens.
+        val status = HealthConnectClient.getSdkStatus(applicationContext)
+
+        when (status) {
+            HealthConnectClient.SDK_UNAVAILABLE -> {
+                Toast.makeText(
+                    this,
+                    "Health Connect isn't supported on this device.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            }
+            HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> {
+                Toast.makeText(
+                    this,
+                    "Health Connect needs to be installed/updated from the Play Store.",
+                    Toast.LENGTH_LONG
+                ).show()
+                // Deep-link to the Play Store listing for Health Connect.
+                val uri = Uri.parse(
+                    "market://details?id=com.google.android.apps.healthdata"
+                )
+                startActivity(Intent(Intent.ACTION_VIEW, uri).apply {
+                    setPackage("com.android.vending")
+                })
+                return
+            }
+        }
+
         lifecycleScope.launch {
-            if (!healthConnectManager.hasAllPermissions()) {
-                requestPermissionActivityContract.launch(healthConnectManager.permissions)
-            } else {
-                Toast.makeText(this@MainActivity, "Permissions already granted", Toast.LENGTH_SHORT).show()
+            try {
+                if (!healthConnectManager.hasAllPermissions()) {
+                    requestPermissionActivityContract.launch(healthConnectManager.permissions)
+                } else {
+                    Toast.makeText(this@MainActivity, "Permissions already granted", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                // Surface the real failure instead of letting it fail silently.
+                Log.e("HealthConnect", "Failed to request permissions", e)
+                Toast.makeText(
+                    this@MainActivity,
+                    "Couldn't open Health Connect: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
