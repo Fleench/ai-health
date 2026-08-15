@@ -66,7 +66,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
 
     // Health Connect
-    implementation("androidx.health.connect:connect-client:1.1.0-alpha07")
+    implementation("androidx.health.connect:connect-client:1.1.0")
 
     // Gemini SDK
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
